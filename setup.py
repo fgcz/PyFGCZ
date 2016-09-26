@@ -6,19 +6,22 @@ https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html
 """
 
 
-try:
-    from pypandoc import convert
-    read_md = lambda f: convert(f, 'rst')
-except ImportError:
-    print("warning: pypandoc module not found, could not convert Markdown to RST")
-    read_md = lambda f: open(f, 'r').read()
 
+def readme():
+    with open('README.rst') as f:
+        return f.read()
 
 
 setup(name='PyFGCZ',
-      version='0.4',
+      version='0.5',
       description="contains BioBeamer and FCC",
-      long_description=read_md('README.md'),
+      long_description=readme(),
+      classifiers=[
+        'Development Status :: 3 - Beta',
+        'License :: OSI Approved :: GPLv3',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Text Processing :: Linguistic',
+      ],
       url='https://github.com/fgcz/PyFGCZ',
       author='Christian Panse',
       author_email='cp@fgcz.ethz.ch',
