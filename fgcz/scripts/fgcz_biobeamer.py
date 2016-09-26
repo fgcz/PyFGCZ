@@ -26,11 +26,13 @@ Author / Maintainer: Christian Panse <cp@fgcz.ethz.ch>, Witold E. Wolski <wew@fg
 """
 
 from fgcz import biobeamer
+import socket
+import time
 
 if __name__ == "__main__":
     configuration_url = "http://fgcz-s-021.uzh.ch/config/"
-    print str(socket.gethostname())
-    bio_beamer = Robocopy()
+    print "hostname is {0}.".format(socket.gethostname())
+    bio_beamer = biobeamer.Robocopy()
     biobeamer_xsd = "{0}/BioBeamer.xsd".format(configuration_url)
     biobeamer_xml = "{0}/BioBeamer.xml".format(configuration_url)
 
@@ -48,4 +50,3 @@ if __name__ == "__main__":
 
     sys.stdout.write("done. exit 0\n")
     time.sleep(5)
-    sys.exit(0)
