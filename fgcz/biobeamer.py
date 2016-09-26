@@ -63,6 +63,8 @@ class BioBeamerParser(object):
         self.logger = create_logger()
 
         self.parameters = {}
+
+        xml_url = xml
         # read config files from url
         try:
             f = urllib.urlopen(xml)
@@ -117,7 +119,9 @@ class BioBeamerParser(object):
                 found_host_config = True
 
         if found_host_config is False:
-            self.logger.error("no host configuration could be found in '{0}'.".format(xml))
+            msg = "no host configuration could be found in '{0}'.".format(xml_url)
+            print msg
+            self.logger.error(msg)
             sys.exit(1)
 
 class BioBeamer(object):
@@ -393,25 +397,3 @@ class TestTargetMapping(unittest.TestCase):
         self.assertTrue(map_data_analyst_tripletof_1('p1000\data\selevsek_20150119') is None)
 
 
-if __name__ == "__main__":
-    print "test"
-    print str(socket.gethostname())
-    bio_beamer = Robocopy()
-    biobeamer_xsd = "{0}/BioBeamer.xsd".format(configuration_url)
-    biobeamer_xml = "{0}/BioBeamer.xml".format(configuration_url)
-
-    bio_beamer.para_from_url(xsd=biobeamer_xsd,
-                     xml=biobeamer_xml)
-                     
-    bio_beamer.run()
-    
-    time.sleep(5)
-    
-    BBChecker = Checker()
-    BBChecker.para_from_url(xsd=biobeamer_xsd,
-                            xml=biobeamer_xml)
-    BBChecker.run()
-
-    sys.stdout.write("done. exit 0\n")
-    time.sleep(5)
-    sys.exit(0)

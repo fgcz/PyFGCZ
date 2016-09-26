@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Author / Maintainer: Christian Panse <cp@fgcz.ethz.ch>, Witold E. Wolski <wew@fgcz.ethz.ch>
 """
 
-import biobeamer
+from fgcz import biobeamer
 
 
 class TestTargetMapping(unittest.TestCase):
