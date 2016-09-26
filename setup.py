@@ -3,8 +3,9 @@ from setuptools import setup
 
 """
 https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html
-"""
 
+python setup.py register sdist upload
+"""
 
 
 def readme():
@@ -13,14 +14,18 @@ def readme():
 
 
 setup(name='PyFGCZ',
-      version='0.5',
+      version='0.5.2',
       description="contains BioBeamer and FCC",
       long_description=readme(),
       classifiers=[
-        'Development Status :: 3 - Beta',
-        'License :: OSI Approved :: GPLv3',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
-        'Topic :: Text Processing :: Linguistic',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
+        'Topic :: Utilities',
       ],
       url='https://github.com/fgcz/PyFGCZ',
       author='Christian Panse',

@@ -12,7 +12,7 @@ devivices can be seen through http://fgcz-data.uzh.ch/config/BioBeamer.xml.
 *FCC* is a minimalistic workflow engine.
 The specification/properties of the program are as follow:
 
-- converting instrument files (e.g. RAW-files) to all kinds of formats
+- converting instrument files, e.g., RAW-files to all kinds of formats
 
 - being generic
 
@@ -26,20 +26,15 @@ The specification/properties of the program are as follow:
 
 A current configugration can be found through http://fgcz-data.uzh.ch/config/fcc_config.xml.
 
-Installation
-------------
 
 See also
 --------
+
 - https://github.com/fgcz/BioBeamer
+
 - https://github.com/fgcz/fcc
 
 - `DOI: 10.1186/1751-0473-8-3`__.
 __ http://dx.doi.org/10.1186%2F1751-0473-8-3
-
-
-
-
-
 
 
