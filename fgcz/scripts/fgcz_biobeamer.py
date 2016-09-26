@@ -3,11 +3,7 @@
 # -*- coding: latin1 -*-
 
 """
-$HeadURL: http://fgcz-svn.uzh.ch/repos/fgcz/stable/proteomics/BioBeamer/fgcz_biobeamer.py $
-$Id: fgcz_biobeamer.py 7915 2015-12-21 08:16:17Z cpanse $
-$Date: 2015-12-21 09:16:17 +0100 (Mon, 21 Dec 2015) $
-
-Copyright 2006-2015 Functional Genomics Center Zurich
+Copyright 2006-2016 Functional Genomics Center Zurich
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
