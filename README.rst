@@ -1,13 +1,10 @@
-
 PyFGCZ
 ======
 
-
-PyFGCZ contains BioBeamer and FCC python code.
-
-*BioBeamer* helps to collect huge amounts of instrument data (MB/GB/TB).
-An example configuration collecting mass spectrometric meassurement of  more than 
-devivices can be seen through http://fgcz-data.uzh.ch/config/BioBeamer.xml.
+*BioBeamer* helps to collect huge amounts of instrument data (M|G|TBytes).
+An example configuration collecting mass spectrometric measurement of more 
+than a dozen devices can be seen through
+http://fgcz-data.uzh.ch/config/BioBeamer.xml.
 
 *FCC* is a minimalistic workflow engine.
 The specification/properties of the program are as follow:
@@ -32,9 +29,15 @@ See also
 
 - https://github.com/fgcz/BioBeamer
 
-- https://github.com/fgcz/fcc
+- https://github.com/fgcz/fcc 
 
-- `DOI: 10.1186/1751-0473-8-3`__.
+
+References
+----------
+
+FCC - An automated rule-based processing tool for life science data,
+Simon Barkow-Oesterreicher, Can Türker and Christian Panes,
+Source Code for Biology and Medicine20138:3 `DOI: 10.1186/1751-0473-8-3`__.
+
 __ http://dx.doi.org/10.1186%2F1751-0473-8-3
-
 
