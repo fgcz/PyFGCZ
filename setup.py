@@ -34,7 +34,7 @@ setup(name='PyFGCZ',
       packages=['fgcz'],
       install_requires=[
         'PyYAML>=3',
-        'lxml>=3.4.4' ],
+        'lxml==3.6.0' ],
       scripts=[
         'fgcz/scripts/fgcz_biobeamer.py',
         'fgcz/scripts/fgcz_fcc_run_linux.py',
