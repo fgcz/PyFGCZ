@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding: latin1 -*-
 
-# $HeadURL: http://fgcz-svn.uzh.ch/repos/fgcz/stable/proteomics/fcc/fcc.py $
+# $HeadURL: https://github.com/fgcz/PyFGCZ/fcc.py $
 # $Id: fcc.py 7518 2015-05-27 15:20:12Z cpanse $
 # $Date: 2015-05-27 17:20:12 +0200 (Wed, 27 May 2015) $
 # $Author: cpanse $
 
 
-# Copyright 2008-2015
+# Copyright 2008-2017
 # Christian Panse <cp@fgcz.ethz.ch>
 # Simon Barkow-Oesterreicher 
 # Witold Eryk Wolski <wew@fgcz.ethz.ch>
@@ -80,7 +80,7 @@ HISTORY
     2012-12-04 handles dirs as files, e.g. conversion of waters.com instruments raw folders (SB,CP)
     2015-07-07 on github.com
 """
-__version__ = "https://github.com/fgcz/fcc"
+__version__ = "https://github.com/fgcz/PyFGCZ"
 
 import os
 import urllib
