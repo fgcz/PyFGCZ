@@ -98,6 +98,7 @@ import multiprocessing
 import logging
 import logging.handlers
 import hashlib
+import yaml
 
 
 def create_logger(name="fcc", address=("130.60.81.148", 514)):
@@ -424,15 +425,14 @@ class Fcc:
     """
     write all considered cmds  into a file
     """
-    def update_processed_cmd(self, filename = r'C:\FGCZ\fcc\processedCmd.txt'):
+    def update_processed_cmd(self, filename = r'C:\FGCZ\fcc\cmds_conducted.yaml'):
         if self.parameters['exec']:
             try:
                 os.rename(filename, "{}.bak".format(filename))
             except:
                 pass
-            with open(filename,"w") as f:
-                for cl in processedCmdMD5Dict.keys:
-                    f.write("{}\n".format(cl))
+            with open(filename, "w") as f:
+                yaml.dump(self.processedCmdMD5Dict, f, default_flow_style=False)
 
 
     def process(self, file):
