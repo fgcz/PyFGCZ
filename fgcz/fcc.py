@@ -340,7 +340,7 @@ def matchFileToRules(fileDetails, rulesList, myHostname = None):
                         rule["converterDir"]) + " is already in the path.")
                     continue
                 matchedRules.append(rule)
-		print rule
+		# print rule
         except:
             pass
     return matchedRules
@@ -421,6 +421,20 @@ class Fcc:
             logger.error("could not parse xml configuration")
             return None
 
+    """
+    write all considered cmds  into a file
+    """
+    def update_processed_cmd(self, filename = r'C:\FGCZ\fcc\processedCmd.txt'):
+        if self.parameters['exec']:
+            try:
+                os.rename(filename, "{}.bak".format(filename))
+            except:
+                pass
+            with open(filename,"w") as f:
+                for cl in processedCmdMD5Dict.keys:
+                    f.write("{}\n".format(cl))
+
+
     def process(self, file):
         """
         computes a match and executes cmd (add to spool dir)
@@ -480,17 +494,11 @@ class Fcc:
 
                     if not candCmdLineMD5 in self.processedCmdMD5Dict:
                         self.processedCmdMD5Dict[candCmdLineMD5] = candCmdLine
-                        update_processedCmdMD5Dict()
+                        self.update_processed_cmd()
                         if self.parameters['exec']:
                             self.pool.map_async(myExecWorker0, [ candCmdLine ],
                                 callback=lambda i: logger.info("callback {0}".format(i)))
                             logger.info("added|cmd='{}' to pool".format(candCmdLine))
-
-    def update_processedCmdMD5Dict(self, filename = r'C:\FGCZ\fcc\processedCmd.txt'):
-        os.rename(filename, "{}.bak".format(filename))
-        with open(filename,"w") as f:
-            for cl in processedCmdMD5Dict.keys:
-                f.write("{}\n".format(cl))
 
     def run(self):
         """
