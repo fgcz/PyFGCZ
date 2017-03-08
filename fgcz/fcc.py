@@ -480,11 +480,17 @@ class Fcc:
 
                     if not candCmdLineMD5 in self.processedCmdMD5Dict:
                         self.processedCmdMD5Dict[candCmdLineMD5] = candCmdLine
+                        update_processedCmdMD5Dict()
                         if self.parameters['exec']:
                             self.pool.map_async(myExecWorker0, [ candCmdLine ],
                                 callback=lambda i: logger.info("callback {0}".format(i)))
                             logger.info("added|cmd='{}' to pool".format(candCmdLine))
 
+    def update_processedCmdMD5Dict(self, filename = r'C:\FGCZ\fcc\processedCmd.txt'):
+        os.rename(filename, "{}.bak".format(filename))
+        with open(filename,"w") as f:
+            for cl in processedCmdMD5Dict.keys:
+                f.write("{}\n".format(cl))
 
     def run(self):
         """

@@ -14,7 +14,7 @@ def readme():
 
 
 setup(name='PyFGCZ',
-      version='0.5.8',
+      version='0.5.9',
       description="PyFGCZ contains BioBeamer and FCC python code.",
       long_description=readme(),
       classifiers=[
