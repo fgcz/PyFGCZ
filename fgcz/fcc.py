@@ -100,7 +100,7 @@ import logging.handlers
 import hashlib
 
 
-def create_logger(name="fcc", address=("130.60.81.148", 514)):
+def create_logger(name="fcc", address=("fgcz-ms.uzh.ch", 514)):
     """
     create a logger object
     """
@@ -253,7 +253,7 @@ def parseConfig(xml):
         rule = dict()
         try:
             converter = converterDict[i.attributes['converterID'].value]
-            for a in ("converterDir", "converterCmd", "converterOptions", "toFileExt", "fromFileExt", "hostname"):
+            for a in ("converterID", "converterDir", "converterCmd", "converterOptions", "toFileExt", "fromFileExt", "hostname"):
                 rule[a] = converter[a]
 
             # hard constraints
@@ -358,7 +358,7 @@ def usage():
 class Fcc:
     """
     """
-    parameters = {'config_url': "http://fgcz-s-021.uzh.ch/config/fcc_config.xml", 'readme_url': "http://fgcz-s-021.uzh.ch/config/fcc_readme.txt",
+    parameters = {'config_url': "http://fgcz-ms.uzh.ch/config/fcc_config.xml", 'readme_url': "http://fgcz-r-021.uzh.ch/config/fcc_readme.txt",
                  'crawl_pattern': ['/srv/www/htdocs/Data2San/',
                         'p[0-9]{2,4}', 'Metabolomics',
                         '(GCT)_[0-9]',
@@ -451,13 +451,34 @@ class Fcc:
                 """
                 create the directory in the python way,
                 """
-                if not os.path.exists(converterDir) and self.parameters['exec']:
+                # if not os.path.exists(converterDir) and self.parameters['exec']:
+                if not os.path.exists(converterDir):
                     try:
                         os.mkdir(converterDir)
                     except:
                         logger.error(
                             "mkdir {0} failed.".format(converterDir))
-                        sys.exit(1)
+                        raise
+
+                readme_filename = os.path.normpath("{0}/README.txt".format(converterDir))
+                readme_content = """
+the files contained in this directory have been generated using fcc applying rule #{0}.
+
+more information can be found using the following url:
+
+http://fgcz-data.uzh.ch/config/fcc_config.xml#converterID-{0}
+
+or by contacting Christian Panse <cp@fgcz.ethz.ch>
+
+if you use these files in your publication please cite:
+http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
+
+
+""".format(mrule["converterID"])
+
+                if os.path.isfile(readme_filename) is False:
+                    with open(readme_filename, "w") as readmef:
+                        readmef.write(readme_content)
 
                 toFileName = os.path.normpath(
                     "{0}/{1}{2}".format(converterDir,
@@ -479,18 +500,24 @@ class Fcc:
                     candCmdLineMD5 = checksum.hexdigest()
 
                     if not candCmdLineMD5 in self.processedCmdMD5Dict:
+
                         self.processedCmdMD5Dict[candCmdLineMD5] = candCmdLine
                         if self.parameters['exec']:
                             self.pool.map_async(myExecWorker0, [ candCmdLine ],
                                 callback=lambda i: logger.info("callback {0}".format(i)))
                             logger.info("added|cmd='{}' to pool".format(candCmdLine))
-
+                    else:
+                        # TODO(cp): make this generic working
+                        with open("C:\\FGCZ\\fcc\Cmds-problems.txt", "a") as cmdf:
+                            cmdf.write("{0}\t{1}\n".format(candCmdLineMD5, candCmdLine))
 
     def run(self):
         """
 
         :return:
         """
+
+
         crawler = FgczCrawl(pattern=self.parameters['crawl_pattern'], max_time_diff=self.parameters['max_time_diff'])
 
         if not os.path.exists(os.path.normpath(self.parameters['crawl_pattern'][0])):
