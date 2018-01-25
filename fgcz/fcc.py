@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding: latin1 -*-
 
-# $HeadURL: http://fgcz-svn.uzh.ch/repos/fgcz/stable/proteomics/fcc/fcc.py $
+# $HeadURL: https://github.com/fgcz/PyFGCZ/fcc.py $
 # $Id: fcc.py 7518 2015-05-27 15:20:12Z cpanse $
 # $Date: 2015-05-27 17:20:12 +0200 (Wed, 27 May 2015) $
 # $Author: cpanse $
 
 
-# Copyright 2008-2015
+# Copyright 2008-2017
 # Christian Panse <cp@fgcz.ethz.ch>
 # Simon Barkow-Oesterreicher 
 # Witold Eryk Wolski <wew@fgcz.ethz.ch>
@@ -80,7 +80,7 @@ HISTORY
     2012-12-04 handles dirs as files, e.g. conversion of waters.com instruments raw folders (SB,CP)
     2015-07-07 on github.com
 """
-__version__ = "https://github.com/fgcz/fcc"
+__version__ = "https://github.com/fgcz/PyFGCZ"
 
 import os
 import urllib
@@ -98,6 +98,7 @@ import multiprocessing
 import logging
 import logging.handlers
 import hashlib
+import yaml
 
 
 def create_logger(name="fcc", address=("fgcz-ms.uzh.ch", 514)):
@@ -340,7 +341,7 @@ def matchFileToRules(fileDetails, rulesList, myHostname = None):
                         rule["converterDir"]) + " is already in the path.")
                     continue
                 matchedRules.append(rule)
-		print rule
+		# print rule
         except:
             pass
     return matchedRules
@@ -420,6 +421,19 @@ class Fcc:
         except:
             logger.error("could not parse xml configuration")
             return None
+
+    """
+    write all considered cmds  into a file
+    """
+    def update_processed_cmd(self, filename = r'C:\FGCZ\fcc\cmds_conducted.yaml'):
+        if self.parameters['exec']:
+            try:
+                os.rename(filename, "{}.bak".format(filename))
+            except:
+                pass
+            with open(filename, "w") as f:
+                yaml.dump(self.processedCmdMD5Dict, f, default_flow_style=False)
+
 
     def process(self, file):
         """
@@ -502,6 +516,7 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
                     if not candCmdLineMD5 in self.processedCmdMD5Dict:
 
                         self.processedCmdMD5Dict[candCmdLineMD5] = candCmdLine
+                        self.update_processed_cmd()
                         if self.parameters['exec']:
                             self.pool.map_async(myExecWorker0, [ candCmdLine ],
                                 callback=lambda i: logger.info("callback {0}".format(i)))
