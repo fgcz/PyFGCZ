@@ -35,7 +35,7 @@ See also
 References
 ----------
 
-FCC - An automated rule-based processing tool for life science data,
+*FCC - An automated rule-based processing tool for life science data*,
 Simon Barkow-Oesterreicher, Can Türker and Christian Panse,
 Source Code for Biology and Medicine20138:3 `DOI: 10.1186/1751-0473-8-3`__.
 
