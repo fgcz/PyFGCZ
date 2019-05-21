@@ -3,7 +3,7 @@
 # -*- coding: latin1 -*-
 
 """
-Copyright 2006-2016 Functional Genomics Center Zurich
+Copyright 2006-2019 Functional Genomics Center Zurich
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,14 +26,13 @@ import socket
 import time
 
 if __name__ == "__main__":
-    configuration_url = "http://fgcz-s-021.uzh.ch/config/"
-    print "hostname is {0}.".format(socket.gethostname())
+    configuration_url = "http://fgcz-ms.uzh.ch/config/"
+    print ("hostname is {0}.".format(socket.gethostname()))
     bio_beamer = biobeamer.Robocopy()
     biobeamer_xsd = "{0}/BioBeamer.xsd".format(configuration_url)
     biobeamer_xml = "{0}/BioBeamer.xml".format(configuration_url)
 
-    bio_beamer.para_from_url(xsd=biobeamer_xsd,
-                     xml=biobeamer_xml)
+    bio_beamer.para_from_url(xsd=biobeamer_xsd, xml=biobeamer_xml)
                      
     bio_beamer.run()
     

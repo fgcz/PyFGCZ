@@ -150,7 +150,7 @@ class FgczCrawl(object):
         try:
             file_list = os.listdir(path)
         except:
-            print path
+            print (path)
             res
 
         file_list = filter(self.regex_list[idx].match, file_list)
@@ -559,7 +559,7 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
 
         except:
             logger.error("could not create pool.")
-            print sys.exc_info()
+            # print (sys.exc_info())
             sys.exit(1)
 
         while True:
@@ -588,7 +588,7 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
                 logger.info(msg)
 
             if not self.parameters['loop']:
-		return
+                return (0)
 
             logger.info("sleeping||for {0} seconds ...".format(self.parameters['sleepDuration']))
             time.sleep(self.parameters['sleepDuration'])
@@ -602,8 +602,7 @@ if __name__ == "__main__":
     try:
         import yaml
         fcc = Fcc()
-        print yaml.dump(fcc.read_config(url='http://fgcz-data.uzh.ch/config/fcc_config.xml'))
+        print (yaml.dump(fcc.read_config(url='http://fgcz-data.uzh.ch/config/fcc_config.xml')))
     except:
-        print "yaml does not seems to run. exit"
-        pass
-    
+        print ("yaml does not seems to run. exit")
+        raise 

@@ -34,7 +34,7 @@ import re
 import socket
 import unittest
 import filecmp
-import urllib
+import urllib.request
 from lxml import etree
 
 import tempfile
@@ -67,14 +67,17 @@ class BioBeamerParser(object):
         xml_url = xml
         # read config files from url
         try:
-            f = urllib.urlopen(xml)
-            xml = f.read()
-
-            f = urllib.urlopen(xsd)
-            xsd = f.read()
-
+            with urllib.request.urlopen(xml) as f:
+                xml = f.read()
         except:
-            self.logger.error("can not fetch xml or xsd information")
+            self.logger.error("can not fetch xml information")
+            raise
+
+        try:
+            with urllib.request.urlopen(xsd) as f:
+                xsd = f.read()
+        except:
+            self.logger.error("can not fetch xsd information")
             raise
 
         schema = etree.XMLSchema(etree.XML(xsd))
@@ -120,7 +123,7 @@ class BioBeamerParser(object):
 
         if found_host_config is False:
             msg = "no host configuration could be found in '{0}'.".format(xml_url)
-            print msg
+            print (msg)
             self.logger.error(msg)
             sys.exit(1)
 
@@ -258,8 +261,8 @@ class BioBeamer(object):
 
         if self.parameters['simulate'] is True:
             self.logger.info("simulate is True. aboard.")
-            print "getmtime = {0};\ngetsize = {1} diff={2}".format(time.time() - os.path.getmtime(file_to_copy), os.path.getsize(file_to_copy), 
-                os.path.getsize(file_to_copy) - self.parameters['min_size'] )
+            print ("getmtime = {0};\ngetsize = {1} diff={2}".format(time.time() - os.path.getmtime(file_to_copy), os.path.getsize(file_to_copy), 
+                os.path.getsize(file_to_copy) - self.parameters['min_size'] ))
             return
 
         try:
@@ -336,7 +339,7 @@ class Robocopy(BioBeamer):
         see also:
             https://technet.microsoft.com/en-us/library/cc733145.aspx
         """
-        print file_to_copy
+        print (file_to_copy)
         target_sub_path = func_target_mapping(os.path.dirname(file_to_copy))
         if target_sub_path is None:
             # self.logger.info("func_target_mapping returned 'None'")
