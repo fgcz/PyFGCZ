@@ -1,22 +1,21 @@
-#!/usr/bin/python
 import os
 import getopt
 import sys
-import tempfile
+from PyFGCZ import fcc 
 
-from fgcz import fcc
+import tempfile
 
 def create_pidfile():
     try:
         pidfile = "{0}/fcc.pid".format(tempfile.gettempdir())
         if os.path.isfile(pidfile):
-            print "{0} already exists.  exit.".format(pidfile)
+            print ("{0} already exists.  exit.".format(pidfile))
             sys.exit(1)
         else:
             with open(pidfile, 'w') as f:
                 f.write("fcc is running")
     except: 
-        print "creating {0} failed.".format(pidfile)
+        print ("creating {0} failed.".format(pidfile))
         sys.exit(1)
 
 def unlink_pidfile():
@@ -24,10 +23,10 @@ def unlink_pidfile():
     try:
         os.unlink(pidfile)
     except:
-        print "removing '{0}' failed".format(pidfile)
+        print ("removing '{0}' failed".format(pidfile))
 
 if __name__ == "__main__":
-    #create_pidfile()
+    create_pidfile()
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hoepl", [
                                    "help", "output=", "exec", "pattern=", "loop", "hostname=", "ncpu="])
@@ -47,7 +46,7 @@ if __name__ == "__main__":
         elif o == "--pattern":
             fcc.set_para('myPattern', value)
         elif o == "--hostname":
-            fcc.set_para('hostname', value)
+            myHostname = value
         elif o == "--ncpu":
             fcc.set_para('ncpu',  int(value))
         elif o in ("--help"):
@@ -58,14 +57,13 @@ if __name__ == "__main__":
             sys.exit(1)
 
     crawl_pattern = ['/srv/www/htdocs/Data2San/',
-        'p[0-9]{2,4}', '(Metabolomics|Proteomics)',
-        '(EXTERNAL|GCT|G2HD)_[0-9]',
-        '[a-z]{3,18}_[0-9]{8}(_[-a-zA-Z0-9_]{0,100}){0,1}',
+        'p[0-9]{2,4}', '(Proteomics|Metabolomics)',
+        '(QEXACTIVEHF|FUSION|QEXACTIVEHFX|LUMOS|GCT|G2HD|G2SI)_[0-9]',
+        '[a-z]{2,18}_[0-9]{8}(_[-a-zA-Z0-9_]{0,100}){0,1}',
         '[-a-zA-Z0-9_]+.(raw|RAW|wiff|wiff\.scan)']
 
     fcc.set_para('crawl_pattern', crawl_pattern)
-    #fcc.set_para('max_time_diff', 60 * 60 * 24 * 7 * 10)
-
+    fcc.set_para('min_time_diff', 3600)
 
     fcc.run()
-    #unlink_pidfile()
+    unlink_pidfile()

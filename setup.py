@@ -14,8 +14,9 @@ def readme():
 
 
 setup(name='PyFGCZ',
-      version='3.0.0',
+      version='3.0.1',
       description="PyFGCZ contains BioBeamer and FCC python code.",
+      python_requires='>3.4',
       long_description=readme(),
       classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
