@@ -24,6 +24,9 @@ The specification/properties of the program are as follow:
 A current configuration can be found through http://fgcz-ms.uzh.ch/config/fcc_config.xml.
 
 
+::
+    fcc_run_linux.py --ncpu 1 --hostname fgcz-s-021 --output __runme.bash --exec --loop
+
 See also
 --------
 
