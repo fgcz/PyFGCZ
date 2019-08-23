@@ -1,16 +1,10 @@
 #!/usr/bin/python
 # -*- coding: latin1 -*-
 
-# $HeadURL: https://github.com/fgcz/PyFGCZ/fcc.py $
-# $Id: fcc.py 7518 2015-05-27 15:20:12Z cpanse $
-# $Date: 2015-05-27 17:20:12 +0200 (Wed, 27 May 2015) $
-# $Author: cpanse $
-
-
-# Copyright 2008-2017
+# Copyright 2008-2019
 # Christian Panse <cp@fgcz.ethz.ch>
 # Simon Barkow-Oesterreicher 
-# Witold Eryk Wolski <wew@fgcz.ethz.ch>
+# Witold Eric Wolski <wew@fgcz.ethz.ch>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -79,11 +73,12 @@ HISTORY
     2012-06-28 switched to os.walk for the crawler methode (CP)
     2012-12-04 handles dirs as files, e.g. conversion of waters.com instruments raw folders (SB,CP)
     2015-07-07 on github.com
+    2019-08-23 python3 / file time / report pending jobs in queue 
 """
 __version__ = "https://github.com/fgcz/PyFGCZ"
 
 import os
-import urllib
+from urllib.request import urlopen
 import signal
 import platform
 import socket
@@ -98,10 +93,9 @@ import multiprocessing
 import logging
 import logging.handlers
 import hashlib
-import yaml
 
 
-def create_logger(name="fcc", address=("fgcz-ms.uzh.ch", 514)):
+def create_logger(name="fcc", address=("130.60.193.21", 514)):
     """
     create a logger object
     """
@@ -113,15 +107,12 @@ def create_logger(name="fcc", address=("fgcz-ms.uzh.ch", 514)):
     logger.setLevel(20)
     logger.addHandler(syslog_handler)
 
-
     return logger
 
 logger = create_logger()
 
 class FgczCrawl(object):
-
-
-    def __init__(self, pattern=None, max_time_diff=None):
+    def __init__(self, pattern=None, max_time_diff=None, min_time_diff=300):
         """
         """
         self.para = {}
@@ -135,9 +126,9 @@ class FgczCrawl(object):
                                  '[a-z]{3,18}_[0-9]{8}(_[-a-zA-Z0-9_]+){0,1}',
                                  '[-a-zA-Z0-9_]+.(raw|RAW|wiff|wiff\.scan)$']
 
-        self.regex_list = map(lambda p: re.compile(p), self.pattern_list)
+        self.regex_list = list(map(lambda p: re.compile(p), self.pattern_list))
 
-        self.para['min_time_diff'] = 300
+        self.para['min_time_diff'] = min_time_diff
         if not max_time_diff is None:
             self.para['max_time_diff'] = max_time_diff
         else:
@@ -145,7 +136,7 @@ class FgczCrawl(object):
         self.para['min_size'] = 100 * 1024  # 100K Bytes
 
     def dfs_(self, path, idx):
-        res = []
+        res = list()
 
         try:
             file_list = os.listdir(path)
@@ -158,18 +149,19 @@ class FgczCrawl(object):
         for f in file_list:
             new_path = os.path.normpath("{0}/{1}".format(path, f))
             if os.path.isdir(new_path) and idx < len(self.regex_list) - 1:
-                res = res + self.dfs_(new_path, idx + 1)
+                res.extend(self.dfs_(new_path, idx + 1))
             elif os.path.exists(new_path):
                 res.append(new_path)
 
         
-        res = filter(lambda f: time.time() - os.path.getmtime(f) > self.para[
-                     'min_time_diff'] and time.time() - os.path.getmtime(f) < self.para['max_time_diff'], res)
+	
+	#logger.info("min_time_diff={}".format(self.para['min_time_diff']))
+        res = filter(lambda f: time.time() - os.path.getctime(f) > self.para[
+                     'min_time_diff'] and time.time() - os.path.getctime(f) < self.para['max_time_diff'], res)
         res = filter(lambda f: os.path.getsize(f) >
                      self.para['min_size'] or os.path.isdir(f), res)
 
-
-        return res
+        return list(res)
 
     @property
     def run(self):
@@ -182,12 +174,10 @@ class FgczCrawl(object):
         tStart = time.time()
         logger.info("crawling for files ...")
         files = self.dfs_(os.path.normpath(self.pattern_list[0]), 1)
-        logger.info("crawling done|time={0:.2f} seconds.".format(time.time() - tStart))
-        logger.debug("found {0} files in {1}.".format(len(files), self.pattern_list[0]))
+        logger.info("crawling done|time={0:.2f} seconds|#files={nf}.".format(time.time() - tStart, nf=len(files)))
+        # logger.debug("found {0} files in {1}.".format(len(files), self.pattern_list[0]))
 
         return files
-
-
 
 def signal_handler(signal, frame):
     logger.error("sys exit 1; signal={0}; frame={1}".format(signal, frame))
@@ -254,7 +244,7 @@ def parseConfig(xml):
         rule = dict()
         try:
             converter = converterDict[i.attributes['converterID'].value]
-            for a in ("converterID", "converterDir", "converterCmd", "converterOptions", "toFileExt", "fromFileExt", "hostname"):
+            for a in ("converterDir", "converterCmd", "converterOptions", "toFileExt", "fromFileExt", "hostname"):
                 rule[a] = converter[a]
 
             # hard constraints
@@ -294,7 +284,7 @@ def getDetailsFromFilePath(filePath):
     return fileDetails
 
 
-def matchFileToRules(fileDetails, rulesList, myHostname = None):
+def matchFileToRules(fileDetails, rulesList, myHostname=None):
     """
     returns rules that are matched to instrument RAW-files.
     NOTE: date cmp function assumes YYYYMMDD!
@@ -310,7 +300,7 @@ def matchFileToRules(fileDetails, rulesList, myHostname = None):
             logger.debug("skipping" + filename + "because of file size is 0.")
             return matchedRules
 
-        timediff = time.time() - os.path.getmtime(filename)
+        timediff = time.time() - os.path.getctime(filename)
 
         # TODO(cp): should be a variable
         if timediff < 300:
@@ -327,6 +317,8 @@ def matchFileToRules(fileDetails, rulesList, myHostname = None):
             regex = re.compile(".*{0}.*".format(rule["keyword"]))
             regex2 = re.compile(".*{0}.*".format(rule["converterDir"]))
 
+  
+
             if (((fileDetails["project"] == rule["project"]) or ('' == rule["project"])) and
                 (fileDetails["omics"] == rule["omics"]) and
                 ((fileDetails["instrument"] == rule["instrument"]) or ('' == rule["instrument"])) and
@@ -334,14 +326,30 @@ def matchFileToRules(fileDetails, rulesList, myHostname = None):
                 (fileDetails["date"] >= rule["beginDate"]) and
                 (fileDetails["date"] <= rule["endDate"]) and
                 (fileDetails["extension"] == rule["fromFileExt"]) and
-                (regex.match(fileDetails["filePath"])) and
-                    (re.search(myHostname, rule["hostname"]))):
-                if (regex2.match(fileDetails["filePath"])):
+                bool(regex.match(fileDetails["filePath"])) and
+                    bool(re.search(myHostname, rule["hostname"]))):
+
+                if (bool(regex2.match(fileDetails["filePath"]))):
                     logger.debug("skipping '" + filename + "' because of recursion warning." + str(
                         rule["converterDir"]) + " is already in the path.")
                     continue
+
+
+                """
+                print filename, timediff, \
+  (fileDetails["project"] == rule["project"] or ('' == rule["project"])), \
+  fileDetails["omics"] == rule["omics"], \
+  ((fileDetails["instrument"] == rule["instrument"]) or ('' == rule["instrument"])), \
+  ((fileDetails["user"] == rule["user"]) or ('' == rule["user"])), \
+  (fileDetails["date"] >= rule["beginDate"]), \
+  (fileDetails["date"] <= rule["endDate"]), \
+  (fileDetails["extension"] == rule["fromFileExt"]), \
+  (bool(regex.match(fileDetails["filePath"])) and bool((re.search(myHostname, rule["hostname"])))), \
+  bool(re.search(myHostname, rule["hostname"])), \
+  bool(regex2.match(fileDetails["filePath"]))
+                """
+         
                 matchedRules.append(rule)
-		# print rule
         except:
             pass
     return matchedRules
@@ -359,20 +367,21 @@ def usage():
 class Fcc:
     """
     """
-    parameters = {'config_url': "http://fgcz-ms.uzh.ch/config/fcc_config.xml", 'readme_url': "http://fgcz-r-021.uzh.ch/config/fcc_readme.txt",
+    parameters = {'config_url': "http://fgcz-ms.uzh.ch/config/fcc_config.xml",
                  'crawl_pattern': ['/srv/www/htdocs/Data2San/',
                         'p[0-9]{2,4}', 'Metabolomics',
                         '(GCT)_[0-9]',
                         '[a-z]{3,18}_[0-9]{8}(_[-a-zA-Z0-9_]{0,100}){0,1}',
                         '[-a-zA-Z0-9_]+.(raw|RAW|wiff|wiff\.scan)'],
-                 'nCPU': 1,
+                 'nCPU': None,
                  'max_time_diff': 60 * 60 * 24 * 7 * 4,
-                 'sleepDuration': 300,
+                 'sleepDuration': 600,
+                 'min_time_diff': 300,
                  'loop': False,
                  'exec': False}
 
     myProcessId = os.getpid()
-    parameters['hostname'] = "{0}".format(socket.gethostbyaddr(socket.gethostname())[0].split('.')[0])
+    myHostname = "{0}".format(socket.gethostbyaddr(socket.gethostname())[0].split('.')[0])
 
     signal.signal(signal.SIGINT, signal_handler)
     myRootDir = None
@@ -405,15 +414,18 @@ class Fcc:
 
         try:
             logger.info("trying to open '{0}' ... ".format(url))
-            config_xml = urllib.urlopen(url).read()
 
+		
+            config_xml = urlopen(url).read()
             fccConfigXml = xml.dom.minidom.parseString(config_xml)
+
             logger.info("read {0} ... ".format(url))
+
         except:
             logger.error("The XML config file is missing or malformed. Error: ")
             logger.error(sys.exc_info()[1])
             print ("Unexpected error:", sys.exc_info()[1])
-            raise
+            sys.exit(1)
 
         # TODO(cp): use lxml
         try:
@@ -421,19 +433,6 @@ class Fcc:
         except:
             logger.error("could not parse xml configuration")
             return None
-
-    """
-    write all considered cmds  into a file
-    """
-    def update_processed_cmd(self, filename = r'C:\FGCZ\fcc\cmds_conducted.yaml'):
-        if self.parameters['exec']:
-            try:
-                os.rename(filename, "{}.bak".format(filename))
-            except:
-                pass
-            with open(filename, "w") as f:
-                yaml.dump(self.processedCmdMD5Dict, f, default_flow_style=False)
-
 
     def process(self, file):
         """
@@ -450,8 +449,11 @@ class Fcc:
         fileDir = os.path.dirname(file)
         fileDetails = getDetailsFromFilePath(file)
 
+        # print self.myHostname, fileDetails
          
-        matchingRules = matchFileToRules(fileDetails, self.rulesList, myHostname = self.parameters['hostname'])
+        matchingRules = matchFileToRules(fileDetails, self.rulesList, myHostname=self.myHostname)
+
+        #print matchingRules
 
         if len(matchingRules) > 0:
             logger.debug(
@@ -465,34 +467,13 @@ class Fcc:
                 """
                 create the directory in the python way,
                 """
-                # if not os.path.exists(converterDir) and self.parameters['exec']:
-                if not os.path.exists(converterDir):
+                if not os.path.exists(converterDir) and self.parameters['exec']:
                     try:
                         os.mkdir(converterDir)
                     except:
                         logger.error(
                             "mkdir {0} failed.".format(converterDir))
-                        raise
-
-                readme_filename = os.path.normpath("{0}/README.txt".format(converterDir))
-                readme_content = """
-the files contained in this directory have been generated using fcc applying rule #{0}.
-
-more information can be found using the following url:
-
-http://fgcz-data.uzh.ch/config/fcc_config.xml#converterID-{0}
-
-or by contacting Christian Panse <cp@fgcz.ethz.ch>
-
-if you use these files in your publication please cite:
-http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
-
-
-""".format(mrule["converterID"])
-
-                if os.path.isfile(readme_filename) is False:
-                    with open(readme_filename, "w") as readmef:
-                        readmef.write(readme_content)
+                        sys.exit(1)
 
                 toFileName = os.path.normpath(
                     "{0}/{1}{2}".format(converterDir,
@@ -500,6 +481,7 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
                                         os.path.basename(file))[0],
                                         mrule["toFileExt"]))
 
+                # print "DEBUG", toFileName
                 if not os.path.exists(toFileName):
                     if mrule["project"] in countDict:
                         countDict[mrule["project"]] = countDict[
@@ -509,31 +491,25 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
 
                     candCmdLine = createSystemBatch(
                         file, toFileName, mrule)
+
                     checksum = hashlib.md5()
                     checksum.update(candCmdLine.encode("utf-8"))
                     candCmdLineMD5 = checksum.hexdigest()
 
                     if not candCmdLineMD5 in self.processedCmdMD5Dict:
-
                         self.processedCmdMD5Dict[candCmdLineMD5] = candCmdLine
-                        self.update_processed_cmd()
                         if self.parameters['exec']:
                             self.pool.map_async(myExecWorker0, [ candCmdLine ],
                                 callback=lambda i: logger.info("callback {0}".format(i)))
                             logger.info("added|cmd='{}' to pool".format(candCmdLine))
-                    else:
-                        # TODO(cp): make this generic working
-                        with open("C:\\FGCZ\\fcc\Cmds-problems.txt", "a") as cmdf:
-                            cmdf.write("{0}\t{1}\n".format(candCmdLineMD5, candCmdLine))
+
 
     def run(self):
         """
 
         :return:
         """
-
-
-        crawler = FgczCrawl(pattern=self.parameters['crawl_pattern'], max_time_diff=self.parameters['max_time_diff'])
+        crawler = FgczCrawl(pattern=self.parameters['crawl_pattern'], max_time_diff=self.parameters['max_time_diff'], min_time_diff=self.parameters['min_time_diff'])
 
         if not os.path.exists(os.path.normpath(self.parameters['crawl_pattern'][0])):
             logger.error("{0} does not exsist.".format(self.parameters('crawl_pattern')[0]))
@@ -559,12 +535,13 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
 
         except:
             logger.error("could not create pool.")
-            # print (sys.exc_info())
             sys.exit(1)
 
         while True:
+            logger.info("number of pending jobs in queue is {}.".format(len(self.pool._cache.keys())))
             self.rulesList = self.read_config(self.parameters['config_url'])
             logger.debug("found {0} rules in {1}".format(len(self.rulesList), self.parameters['config_url']))
+
 
 
             logger.info("computing rule versus file matching ...")
@@ -572,9 +549,12 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
 
             """TODO(cp):
             regex = re.compile(myPattern)
-            FILES = filter(lambda p: regex.match(p), FILES)
+            FILES = list(filter(lambda p: regex.match(p), FILES))
             """
-            map(lambda x: self.process(x), crawler.run)
+
+            #map(lambda x: self.process(x), ffff)
+            for f in crawler.run:
+                self.process(f)
 
             logger.info("matching done|time={0:.2f} seconds.".format(time.time() - tStart))
 
@@ -588,7 +568,7 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3614436/
                 logger.info(msg)
 
             if not self.parameters['loop']:
-                return (0)
+                return(True)
 
             logger.info("sleeping||for {0} seconds ...".format(self.parameters['sleepDuration']))
             time.sleep(self.parameters['sleepDuration'])
@@ -602,7 +582,8 @@ if __name__ == "__main__":
     try:
         import yaml
         fcc = Fcc()
-        print (yaml.dump(fcc.read_config(url='http://fgcz-data.uzh.ch/config/fcc_config.xml')))
+        print(yaml.dump(fcc.read_config(url='http://fgcz-data.uzh.ch/config/fcc_config.xml')))
     except:
-        print ("yaml does not seems to run. exit")
-        raise 
+        print("yaml does not seems to run. exit")
+        pass
+    
