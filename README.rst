@@ -24,30 +24,29 @@ The specification/properties of the program are as follow:
 A current configuration can be found through http://fgcz-ms.uzh.ch/config/fcc_config.xml.
 
 
-Usage
-=====
+Install
+-------
 
+::
+    pip3 install PyFGCZ
+
+Usage
+-----
+
+adapt the following scripts
 
 *Linux*
 
-.. highlight:: sh
 ::
     fcc_run_linux.py --ncpu 1 --hostname fgcz-s-021 --output __runme.bash --exec --loop
-
-.. highlight:: none
-
 
 
 *Windows*
 
-.. highlight:: bat
 ::
     C:\Python37\python.exe c:\FGCZ\fcc\fcc_run_windows.py --ncpu 1 --exec --loop
 
 
-.. highlight:: none
-
-  
 See also
 --------
 
