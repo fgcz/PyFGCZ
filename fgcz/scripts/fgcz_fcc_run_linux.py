@@ -1,7 +1,7 @@
 import os
 import getopt
 import sys
-from PyFGCZ import fcc 
+import fgcz
 
 import tempfile
 
@@ -34,7 +34,7 @@ if __name__ == "__main__":
         print (str(err))
         sys.exit(2)
 
-    fcc = fcc.Fcc()
+    fcc = fgcz.fcc.Fcc()
 
     for o, value in opts:
         if o == "--output":
