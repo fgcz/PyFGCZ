@@ -48,7 +48,6 @@ AUTHOR
     Simon Barkow-Oesterreicher and Christian Panse <cp@fgcz.ethz.ch>
 
 SEE ALSO
-    https://github.com/fgcz/fcc
     doi:10.1186/1751-0473-8-3
 
 HISTORY
@@ -93,6 +92,7 @@ import multiprocessing
 import logging
 import logging.handlers
 import hashlib
+import tempfile
 
 
 def create_logger(name="fcc", address=("130.60.193.21", 514)):
@@ -180,6 +180,15 @@ class FgczCrawl(object):
         return files
 
 def signal_handler(signal, frame):
+    pidfile = "{0}/fcc.pid".format(tempfile.gettempdir())
+
+    if os.path.isfile(pidfile):
+        try:
+            os.remove(pidfile)
+            logger.info("removed pid file '{}'.".format(pidfile))
+        except:
+            pass
+
     logger.error("sys exit 1; signal={0}; frame={1}".format(signal, frame))
     sys.exit(1)
 
