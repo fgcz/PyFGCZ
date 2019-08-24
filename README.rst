@@ -44,7 +44,7 @@ adapt the following scripts
 *Windows*
 
 ::
-    C:\Python37\python.exe c:\FGCZ\fcc\fcc_run_windows.py --ncpu 1 --exec --loop
+    C:\\Python37\\python.exe c:\\FGCZ\\fcc\\fcc_run_windows.py --ncpu 1 --exec --loop
 
 
 See also
